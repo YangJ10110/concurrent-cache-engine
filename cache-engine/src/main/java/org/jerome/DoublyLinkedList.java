@@ -38,8 +38,12 @@ public class DoublyLinkedList<K, V> {
         if(!listEmpty) {
             newNode.next = head;
             head.prev = newNode;
-            tail = head;
+            head = newNode;
         }
+    }
+
+    void removeTail(){
+
     }
 
     
