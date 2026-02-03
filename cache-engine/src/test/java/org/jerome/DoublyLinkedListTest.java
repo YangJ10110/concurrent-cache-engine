@@ -1,126 +1,214 @@
 package org.jerome;
 
-
 import org.junit.Test;
+import static org.junit.Assert.*;
 
-class DoublyLinkedListTest {
-    public static void main(String[] args) {
-        testAddToHeadOnEmptyList();
-        testAddToHeadOnPopulatedList();
-        testMultipleAdditions();
-        testRemoveTailMultipleNodes();
-        testRemoveTailLastNode();
-        testRemoveTailEmptyList();
-    }
+public class DoublyLinkedListTest {
 
-    public static void testAddToHeadOnEmptyList() {
-        // --- ARRANGE ---
+    @Test
+    public void testAddToHeadOnEmptyList() {
+        // ARRANGE
         DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
 
-        // --- ACT ---
+        // ACT
         list.addToHead("First", 100);
 
-        // --- ASSERT ---
+        // ASSERT
         Node<String, Integer> currentHead = list.getHead();
         Node<String, Integer> currentTail = list.getTail();
-        assert currentHead != null : "Head should not be null";
-        assert currentTail != null : "Tail should not be null";
-        assert currentHead == list.tail : "Head and Tail should be the same for a single node";
-        assert currentHead.key.equals("First") : "Head key should be 'First'";
 
-        System.out.println("Empty List Test: PASSED");
+        assertNotNull("Head should not be null", currentHead);
+        assertNotNull("Tail should not be null", currentTail);
+        assertEquals("Head and Tail should be same for single node", currentHead, currentTail);
+        assertEquals("Head key should be 'First'", "First", currentHead.key);
     }
 
-    public static void testAddToHeadOnPopulatedList() {
-        // --- ARRANGE ---
+    @Test
+    public void testAddToHeadOnPopulatedList() {
+        // ARRANGE
         DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
         list.addToHead("Old", 1);
 
-        // --- ACT ---
+        // ACT
         list.addToHead("New", 2);
 
-        list.addToHead("New2", 2);
-        list.addToHead("New3", 2);
-        // --- ASSERT ---
-        // Use the getters to inspect the private fields
+        // ASSERT
         Node<String, Integer> currentHead = list.getHead();
         Node<String, Integer> currentTail = list.getTail();
 
-        System.out.println(currentHead.key);
-        System.out.println(currentTail.key);
-        assert currentHead != null : "Head should not be null";
-        assert currentHead.key.equals("New") : "New node should be at the head";
+        assertNotNull(currentHead);
+        assertEquals("New", currentHead.key);
 
-        // Verify the "handshake" logic
-        assert currentHead.next == currentTail : "New head's next should point to the old node";
-        assert currentTail.prev == currentHead : "Old node's prev should point to the new head";
-
-        System.out.println("Populated List Test: PASSED");
+        // handshake verification
+        assertEquals(currentTail, currentHead.next);
+        assertEquals(currentHead, currentTail.prev);
     }
 
-    public static void testMultipleAdditions() {
+    @Test
+    public void testMultipleAdditions() {
         DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
         list.addToHead("C", 3);
         list.addToHead("B", 2);
         list.addToHead("A", 1);
 
-        // Let's walk from Head to Tail
-        Node<String, Integer> temp = list.getHead();
-        while (temp != null) {
-            System.out.print(temp.key + " <-> ");
-            temp = temp.next; // This moves us to the next "link"
+        Node<String, Integer> head = list.getHead();
+        Node<String, Integer> tail = list.getTail();
+
+        assertEquals("A", head.key);
+        assertEquals("C", tail.key);
+
+        // verify ordering
+        assertEquals("B", head.next.key);
+        assertEquals("A", head.next.prev.key);
+    }
+
+    @Test
+    public void testRemoveTailMultipleNodes() {
+        // ARRANGE
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+        list.addToHead("C", 3);
+        list.addToHead("B", 2);
+        list.addToHead("A", 1);
+
+        // ACT
+        list.removeTail();
+
+        // ASSERT
+        Node<String, Integer> currentTail = list.getTail();
+
+        assertEquals("B", currentTail.key);
+        assertNull(currentTail.next);
+        assertEquals("A", list.getHead().key);
+    }
+
+    @Test
+    public void testRemoveTailLastNode() {
+        // ARRANGE
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+        list.addToHead("OnlyNode", 1);
+
+        // ACT
+        list.removeTail();
+
+        // ASSERT
+        assertNull(list.getHead());
+        assertNull(list.getTail());
+    }
+
+    @Test
+    public void testRemoveTailEmptyList() {
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+
+        // Should NOT throw exception
+        list.removeTail();
+    }
+
+    @Test
+    public void testMoveMiddleNodeToHead() {
+        // ARRANGE
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+
+        list.addToHead("C", 3); // tail
+        list.addToHead("B", 2); // middle
+        list.addToHead("A", 1); // head
+
+        // List: A <-> B <-> C
+
+        Node<String, Integer> middleNode = list.getHead().next; // B
+
+        // ACT
+        list.moveNodeToHead(middleNode);
+
+        // ASSERT
+        Node<String, Integer> head = list.getHead();
+        Node<String, Integer> tail = list.getTail();
+
+        // B should now be head
+        assertEquals("B", head.key);
+
+        // Order should now be: B <-> A <-> C
+        assertEquals("A", head.next.key);
+        assertEquals("B", head.next.prev.key);
+
+        assertEquals("C", tail.key);
+        assertNull(tail.next);
+
+        // Bidirectional integrity check
+        Node<String, Integer> node = head;
+        while (node.next != null) {
+            assertEquals(node, node.next.prev);
+            node = node.next;
         }
-        System.out.println("null");
+    }
+
+    @Test
+    public void testMoveTailToHead() {
+        // ARRANGE
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+
+        list.addToHead("C", 3); // tail
+        list.addToHead("B", 2);
+        list.addToHead("A", 1); // head
+
+        Node<String, Integer> tailNode = list.getTail(); // C
+
+        // ACT
+        list.moveNodeToHead(tailNode);
+
+        // ASSERT
+        Node<String, Integer> head = list.getHead();
+        Node<String, Integer> tail = list.getTail();
+
+        assertEquals("C", head.key);
+        assertEquals("B", tail.key);
+
+        assertNull(head.prev);
+        assertNull(tail.next);
+    }
+
+    @Test
+    public void testMoveHeadToHead_NoChange() {
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+
+        list.addToHead("B", 2);
+        list.addToHead("A", 1);
+
+        Node<String, Integer> originalHead = list.getHead();
+
+        list.moveNodeToHead(originalHead);
+
+        assertEquals(originalHead, list.getHead());
+        assertEquals("B", list.getTail().key);
+    }
+
+    @Test
+    public void testMoveDeepMiddleNode() {
+        DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+
+        list.addToHead("D",4);
+        list.addToHead("C",3);
+        list.addToHead("B",2);
+        list.addToHead("A",1);
+
+        // A <-> B <-> C <-> D
+
+        Node<String,Integer> node = list.getHead().next.next; // C
+
+        list.moveNodeToHead(node);
+
+        Node<String,Integer> n = list.getHead();
+        while (n.next != null) {
+            assertEquals(n, n.next.prev);
+            n = n.next;
+        }
     }
 
 
-        public static void testRemoveTailMultipleNodes() {
-            // --- ARRANGE ---
-            DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
-            list.addToHead("C", 3); // Will be tail
-            list.addToHead("B", 2);
-            list.addToHead("A", 1); // Will be head
-            // List is: A <-> B <-> C
-
-            // --- ACT ---
-            list.removeTail();
-
-            // --- ASSERT ---
-            Node<String, Integer> currentTail = list.getTail();
-            assert currentTail.key.equals("B") : "Tail should now be 'B'";
-            assert currentTail.next == null : "New tail's next must be null";
-            assert list.getHead().key.equals("A") : "Head should still be 'A'";
-
-            System.out.println("Multiple Nodes Test: PASSED");
-        }
-
-        public static void testRemoveTailLastNode() {
-            // --- ARRANGE ---
-            DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
-            list.addToHead("OnlyNode", 1);
-
-            // --- ACT ---
-            list.removeTail();
-
-            // --- ASSERT ---
-            assert list.getHead() == null : "Head should be null after removing last node";
-            assert list.getTail() == null : "Tail should be null after removing last node";
-
-            System.out.println("Last Node Test: PASSED");
-        }
-
-        public static void testRemoveTailEmptyList() {
-            // --- ARRANGE ---
-            DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
-
-            // --- ACT & ASSERT ---
-            try {
-                list.removeTail(); // Should handle gracefully (no-op or return null)
-                System.out.println("Empty List Test: PASSED");
-            } catch (Exception e) {
-                assert false : "removeTail() crashed on an empty list!";
-            }
-        }
-    }
 
 
+
+
+
+
+
+}

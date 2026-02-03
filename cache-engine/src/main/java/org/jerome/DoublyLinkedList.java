@@ -1,8 +1,8 @@
 package org.jerome;
 
 public class DoublyLinkedList<K, V> {
-    Node<K, V> head;
-    Node<K, V> tail;
+    private Node<K, V> head;
+    private Node<K, V> tail;
 
     public Node<K, V> getHead() {
         return head;
@@ -13,6 +13,7 @@ public class DoublyLinkedList<K, V> {
     }
 
     DoublyLinkedList(){
+
         this.head = null;
         this.tail = null;
     }
@@ -43,23 +44,58 @@ public class DoublyLinkedList<K, V> {
     }
 
     void removeTail(){
-        // removing the tail
-
-        // Steps
-        // Goal - make the prev of the tail to become the new tail
-
-        // make the next of the new tail == null -> garbage collection
         if (tail == null) return;
         if (head == tail){
             head = null;
             tail = null;
             return;
         }
-
-        tail = tail.prev;
-        if (tail.next == null) return;
+        Node<K, V> oldTail = tail;
+        tail = oldTail.prev;
         tail.next = null;
+        oldTail.prev = null;
     }
+
+    // the input should be a node - a memory reference to it
+    // i hope this is the correct way lmao
+    void moveNodeToHead(Node<K, V> node){
+        // first we check if there's a list at all
+        if (head == null || node == head ) return;
+        // lets create a copy of both of the node
+        if (node == tail) tail = node.prev;
+
+        Node<K, V> oldHead = head;
+        Node<K, V> newHead = node;
+
+
+        // switching the prev, next of each node
+        // if the node's the next
+
+        if (oldHead.next == node){
+            oldHead.next = node.next;
+            node.next.prev = oldHead;
+        }
+
+        if (node.next == null) {
+            node.prev.next = null;
+        } else{
+            node.next.prev = node.prev;
+        }
+
+        if (node.prev != null) {
+            node.prev.next = node.next;
+        }
+
+
+        newHead.prev = null;
+        newHead.next = oldHead;
+
+        oldHead.prev = newHead;
+
+        head = newHead;
+    }
+
+
 
     
 
