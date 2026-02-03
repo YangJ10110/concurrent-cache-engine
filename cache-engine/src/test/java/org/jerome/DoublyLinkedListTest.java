@@ -8,6 +8,9 @@ class DoublyLinkedListTest {
         testAddToHeadOnEmptyList();
         testAddToHeadOnPopulatedList();
         testMultipleAdditions();
+        testRemoveTailMultipleNodes();
+        testRemoveTailLastNode();
+        testRemoveTailEmptyList();
     }
 
     public static void testAddToHeadOnEmptyList() {
@@ -71,4 +74,53 @@ class DoublyLinkedListTest {
     }
 
 
-}
+        public static void testRemoveTailMultipleNodes() {
+            // --- ARRANGE ---
+            DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+            list.addToHead("C", 3); // Will be tail
+            list.addToHead("B", 2);
+            list.addToHead("A", 1); // Will be head
+            // List is: A <-> B <-> C
+
+            // --- ACT ---
+            list.removeTail();
+
+            // --- ASSERT ---
+            Node<String, Integer> currentTail = list.getTail();
+            assert currentTail.key.equals("B") : "Tail should now be 'B'";
+            assert currentTail.next == null : "New tail's next must be null";
+            assert list.getHead().key.equals("A") : "Head should still be 'A'";
+
+            System.out.println("Multiple Nodes Test: PASSED");
+        }
+
+        public static void testRemoveTailLastNode() {
+            // --- ARRANGE ---
+            DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+            list.addToHead("OnlyNode", 1);
+
+            // --- ACT ---
+            list.removeTail();
+
+            // --- ASSERT ---
+            assert list.getHead() == null : "Head should be null after removing last node";
+            assert list.getTail() == null : "Tail should be null after removing last node";
+
+            System.out.println("Last Node Test: PASSED");
+        }
+
+        public static void testRemoveTailEmptyList() {
+            // --- ARRANGE ---
+            DoublyLinkedList<String, Integer> list = new DoublyLinkedList<>();
+
+            // --- ACT & ASSERT ---
+            try {
+                list.removeTail(); // Should handle gracefully (no-op or return null)
+                System.out.println("Empty List Test: PASSED");
+            } catch (Exception e) {
+                assert false : "removeTail() crashed on an empty list!";
+            }
+        }
+    }
+
+

@@ -43,7 +43,22 @@ public class DoublyLinkedList<K, V> {
     }
 
     void removeTail(){
+        // removing the tail
 
+        // Steps
+        // Goal - make the prev of the tail to become the new tail
+
+        // make the next of the new tail == null -> garbage collection
+        if (tail == null) return;
+        if (head == tail){
+            head = null;
+            tail = null;
+            return;
+        }
+
+        tail = tail.prev;
+        if (tail.next == null) return;
+        tail.next = null;
     }
 
     
