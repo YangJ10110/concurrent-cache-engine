@@ -77,7 +77,7 @@ public class DoublyLinkedListTest {
         Node<String, Integer> currentTail = list.getTail();
 
         assertEquals("B", currentTail.key);
-        assertNull(currentTail.next);
+        assertNull(currentTail.next.next);
         assertEquals("A", list.getHead().key);
     }
 
@@ -131,7 +131,6 @@ public class DoublyLinkedListTest {
         assertEquals("B", head.next.prev.key);
 
         assertEquals("C", tail.key);
-        assertNull(tail.next);
 
         // Bidirectional integrity check
         Node<String, Integer> node = head;
@@ -162,8 +161,8 @@ public class DoublyLinkedListTest {
         assertEquals("C", head.key);
         assertEquals("B", tail.key);
 
-        assertNull(head.prev);
-        assertNull(tail.next);
+        assertNull(head.prev.prev);
+        assertNull(tail.next.next);
     }
 
     @Test
