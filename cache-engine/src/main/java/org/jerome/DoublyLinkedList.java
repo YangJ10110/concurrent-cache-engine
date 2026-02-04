@@ -21,17 +21,21 @@ public class DoublyLinkedList<K, V> {
     }
 
     void detach(Node<K, V> detachNode){
+        if (detachNode.prev == null || detachNode.next == null) return;
         detachNode.prev.next = detachNode.next;
         detachNode.next.prev = detachNode.prev;
         detachNode.prev = null;
         detachNode.next = null;
     }
 
-    void attachNodeToHead(Node<K, V> detachNode){
-        detachNode.prev = head;
-        detachNode.next = head.next;
-        head.next.prev = detachNode;
-        head.next = detachNode;
+    void attachNodeToHead(Node<K, V> detachedNode){
+        if (detachedNode.prev != null || detachedNode.next != null) {
+            throw new IllegalStateException("Node already attached");
+        }
+        detachedNode.prev = head;
+        detachedNode.next = head.next;
+        head.next.prev = detachedNode;
+        head.next = detachedNode;
 
     }
 
@@ -82,8 +86,7 @@ public class DoublyLinkedList<K, V> {
         oldTail.prev = null;
 */
         if (tail.prev == head) return;
-        tail.prev.prev.next = tail;
-        tail.prev = tail.prev.prev;
+        detach(tail.prev);
     }
 
     void moveNodeToHead(Node<K, V> node){
