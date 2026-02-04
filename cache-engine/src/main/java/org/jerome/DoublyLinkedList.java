@@ -1,28 +1,23 @@
 package org.jerome;
 
 public class DoublyLinkedList<K, V> {
-    private Node<K, V> head;
-    private Node<K, V> tail;
+    private final Node<K, V> head;
+    private final Node<K, V> tail;
 
-    private final Node<K,V> headS;
-    private final Node<K,V> tailS;
 
     public Node<K, V> getHead() {
-        return headS.next == tailS ? null : headS.next;
+        return head.next == tail ? null : head.next;
     }
 
     public Node<K, V> getTail() {
-        return tailS.prev == headS ? null : tailS.prev;
+        return tail.prev == head ? null : tail.prev;
     }
 
     DoublyLinkedList(){
-        headS = new Node<>(null,null);
-        tailS = new Node<>(null,null);
-        headS.next = tailS;
-        tailS.prev = headS;
-
-        this.head = null;
-        this.tail = null;
+        head = new Node<>(null,null);
+        tail = new Node<>(null,null);
+        head.next = tail;
+        tail.prev = head;
     }
 
     void detach(Node<K, V> detachNode){
@@ -33,10 +28,10 @@ public class DoublyLinkedList<K, V> {
     }
 
     void attachNodeToHead(Node<K, V> detachNode){
-        detachNode.prev = headS;
-        detachNode.next = headS.next;
-        headS.next.prev = detachNode;
-        headS.next = detachNode;
+        detachNode.prev = head;
+        detachNode.next = head.next;
+        head.next.prev = detachNode;
+        head.next = detachNode;
 
     }
 
@@ -67,10 +62,10 @@ public class DoublyLinkedList<K, V> {
 
         */
 
-        newNode.prev = headS;
-        newNode.next = headS.next;
-        headS.next.prev = newNode;
-        headS.next = newNode;
+        newNode.prev = head;
+        newNode.next = head.next;
+        head.next.prev = newNode;
+        head.next = newNode;
     }
 
     void removeTail(){
@@ -86,9 +81,9 @@ public class DoublyLinkedList<K, V> {
         tail.next = null;
         oldTail.prev = null;
 */
-        if (tailS.prev == headS) return;
-        tailS.prev.prev.next = tailS;
-        tailS.prev = tailS.prev.prev;
+        if (tail.prev == head) return;
+        tail.prev.prev.next = tail;
+        tail.prev = tail.prev.prev;
     }
 
     void moveNodeToHead(Node<K, V> node){
@@ -98,6 +93,9 @@ public class DoublyLinkedList<K, V> {
 
     // the input should be a node - a memory reference to it
     // i hope this is the correct way lmao
+/**
+ * 
+ * old approach to moveNodeToHead without invariant approach
     void moveNodeToHeadS(Node<K, V> node){
         // first we check if there's a list at all
         if (head == null || node == head ) return;
@@ -134,7 +132,7 @@ public class DoublyLinkedList<K, V> {
 
         head = newHead;
     }
-
+*/
 
 
     
