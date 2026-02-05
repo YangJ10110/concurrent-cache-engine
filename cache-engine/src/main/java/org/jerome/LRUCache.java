@@ -7,6 +7,22 @@ INVARIANTS:
         4. Map lock is always acquired before DLL lock.
 */
 
+/**
+ * Thread-safe LRU cache with relaxed recency semantics.
+ *
+ * Recency updates on read (get) are best-effort:
+ * - If the recency list is contended, the cache may skip
+ *   moving an entry to the head.
+ * - This avoids blocking readers and improves throughput
+ *   under concurrent access.
+ *
+ * Write operations (put, eviction) enforce strict ordering
+ * and always update recency.
+ *
+ * This design favors performance and scalability over
+ * perfectly accurate LRU ordering.
+ */
+
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
