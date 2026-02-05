@@ -105,4 +105,112 @@
 * Prepare for **TTL / time-based eviction** experiments
 * Prepare for **strict vs relaxed LRU** performance comparison
 
+## **Concurrent Cache Engine — Design Document (Initial Impementation Phase)
+**Date Added**: 2026-02-05 
+**Author**: Jerome Yang
+
+## 9. Implementation Overview (Phase 4)
+
+This section documents how the Phase 1–3 design decisions
+were realized in code, including deviations, refinements,
+and implementation-specific trade-offs.
+
+The core cache is implemented using:
+- A HashMap for O(1) key lookup
+- A manually managed doubly linked list for recency tracking
+- Split locking (map + list) for concurrency
+
+## 10. Concurrency Model — As Implemented
+
+### Locking Strategy
+
+Two explicit locks are used:
+- `mapLock`: protects structural integrity of the HashMap
+- `listLock`: protects the doubly linked list (LRU order)
+
+Lock acquisition rules:
+- `mapLock` is always acquired before `listLock`
+- `get()` never blocks on `listLock` (best-effort recency update)
+- `put()` always acquires both locks when modifying state
+
+
+### Read Path (`get`)
+
+- Acquires `mapLock` briefly to retrieve the node
+- Releases `mapLock` immediately
+- Attempts a non-blocking `tryLock()` on `listLock`
+- If successful, updates recency
+- If contended, skips recency update
+
+This ensures read throughput remains high under contention.
+
+
+### Write Path (`put`)
+
+- Acquires `mapLock` first
+- Acquires `listLock` second
+- Performs eviction if capacity is exceeded
+- Inserts or updates node
+- Updates recency strictly
+
+Write operations favor correctness over throughput.
+
+
+## 11. Guarantees & Non-Guarantees
+
+### Guarantees
+
+- Thread-safe access to cache entries
+- No structural corruption of the HashMap or DLL
+- Capacity is strictly enforced
+- Writes always update recency
+- Evicted entries are fully removed from both structures
+
+### Non-Guarantees
+
+- Strict LRU ordering under concurrent reads
+- Linearizable read operations
+- Immediate recency update on every `get`
+
+These trade-offs are intentional and documented.
+
+## 11. Guarantees & Non-Guarantees
+
+### Guarantees
+
+- Thread-safe access to cache entries
+- No structural corruption of the HashMap or DLL
+- Capacity is strictly enforced
+- Writes always update recency
+- Evicted entries are fully removed from both structures
+
+### Non-Guarantees
+
+- Strict LRU ordering under concurrent reads
+- Linearizable read operations
+- Immediate recency update on every `get`
+
+These trade-offs are intentional and documented.
+
+
+### DoublyLinkedList Design
+
+The doubly linked list uses sentinel `head` and `tail` nodes:
+- Eliminates null checks during attach/detach
+- Simplifies edge cases for empty and single-element lists
+- Improves correctness under concurrent modification
+
+Real nodes always exist between `head` and `tail`.
+
+### Relaxed LRU via Non-blocking Reads
+
+`get()` uses `tryLock()` when updating recency:
+- Avoids blocking readers under contention
+- Prevents priority inversion
+- Allows recency to be approximate but bounded
+
+This design favors throughput and scalability over perfect accuracy.
+
+
+
 
