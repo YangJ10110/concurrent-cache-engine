@@ -2,8 +2,11 @@ package org.jerome;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.junit.Assert.*;
 
 public class LRUCacheTest {
 
@@ -41,6 +44,64 @@ public class LRUCacheTest {
         assertEquals("A", cache.get(1));
         assertEquals("C", cache.get(3));
     }
+
+    @Test
+    public void concurrentPut_sameKeys_exposesNodeRaces() throws InterruptedException {
+        LRUCache<Integer, Integer> cache = new LRUCache<>(10);
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        CountDownLatch latch = new CountDownLatch(4);
+
+        for (int t = 0; t < 4; t++) {
+            executor.submit(() -> {
+                for (int i = 0; i < 1_000; i++) {
+                    cache.put(1, i); // same key, same node
+                }
+                latch.countDown();
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        // Value should be one of the written values — but without locks,
+        // you may see inconsistent behavior or crashes
+        Integer value = cache.get(1);
+        assertNotNull(value);
+    }
+
+    @Test
+    public void concurrentGetDuringEviction_exposesDanglingNode() throws InterruptedException {
+        LRUCache<Integer, Integer> cache = new LRUCache<>(3);
+
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch latch = new CountDownLatch(2);
+
+        executor.submit(() -> {
+            for (int i = 0; i < 10_000; i++) {
+                cache.get(1); // may be evicted concurrently later
+            }
+            latch.countDown();
+        });
+
+        executor.submit(() -> {
+            for (int i = 4; i < 10_004; i++) {
+                cache.put(i, i); // forces eviction
+            }
+            latch.countDown();
+        });
+
+        latch.await();
+        executor.shutdown();
+    }
+
+
+
+
 
 
 
