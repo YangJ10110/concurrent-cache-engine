@@ -24,6 +24,8 @@ INVARIANTS:
  */
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -38,7 +40,7 @@ public class LRUCache<K, V> {
 
     LRUCache(int capacity){
         if (capacity < capacityMin || capacity > capacityMax){
-            throw new IllegalArgumentException("Capacity must be greater than 1 and not greather than 1000000");
+            throw new IllegalArgumentException("Capacity must be greater than 1 and not greather than" + capacityMax);
         }
         this.capacity = capacity;
 
@@ -101,5 +103,73 @@ public class LRUCache<K, V> {
              mapLock.unlock();
          }
 
+    }
+
+    void assertInvariants() {
+        mapLock.lock();
+        try {
+            int mapSize = map.size();
+            listLock.lock();
+            try {
+                // 1. Count nodes and collect keys in single pass
+                int listSize = 0;
+                Set<K> listKeys = new HashSet<>();
+                for (Node<K,V> node = dll.getHead(); node != null; node = node.next) {
+                    if (node.key != null) {
+                        listSize++;
+                        listKeys.add(node.key);
+                    }
+                }
+                
+                // 2. Verify map and list sizes match
+                if (mapSize != listSize) {
+                    throw new IllegalStateException(
+                        "Map size (" + mapSize + ") != list size (" + listSize + ")"
+                    );
+                }
+                
+                // 3. Verify map and list have identical keys
+                if (!map.keySet().equals(listKeys)) {
+                    throw new IllegalStateException(
+                        "Map and list keys don't match. Map: " + 
+                        map.keySet() + ", List: " + listKeys
+                    );
+                }
+                
+                // 4. Check bidirectional connectivity
+                Node<K,V> current = dll.getHead();
+                if (current != null) {
+                    while (current.next != null) {
+                        if (current.next.prev != current) {
+                            throw new IllegalStateException(
+                                "Bidirectional connectivity broken at node: " + current.key
+                            );
+                        }
+                        current = current.next;
+                    }
+                }
+                
+                // 5. Verify capacity not exceeded
+                if (mapSize > capacity) {
+                    throw new IllegalStateException(
+                        "Map size (" + mapSize + ") exceeds capacity (" + capacity + ")"
+                    );
+                }
+                
+                // 6. Check all map nodes are attached to list
+                for (Node<K,V> mapNode : map.values()) {
+                    if (mapNode.prev == null || mapNode.next == null) {
+                        throw new IllegalStateException(
+                            "Node in map but detached from list: " + mapNode.key
+                        );
+                    }
+                }
+                
+            } finally {
+                listLock.unlock();
+            }
+        } finally {
+            mapLock.unlock();
+        }
     }
 }
