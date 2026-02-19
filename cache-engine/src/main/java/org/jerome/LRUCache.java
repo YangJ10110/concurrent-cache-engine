@@ -74,18 +74,16 @@ public class LRUCache<K, V> {
          Node<K,V> node;
          mapLock.lock();
          try{
-
              node = map.get(key);
-
-             //
-
              listLock.lock();
              try{
                  if (node == null){
-
                      if (map.size() >= capacity) {
                          Node<K,V> removedTail = dll.removeTail();
-                         if (removedTail != null) map.remove( removedTail.key);
+                         if (removedTail != null) map.remove(removedTail.key);
+                         // Only add if we actually freed a slot (avoids map size > capacity if
+                         // removeTail() returned null or the key was already missing from map).
+                         if (map.size() >= capacity) return;
                      }
 
                      Node<K, V> newNode = dll.addToHead(key, value);
