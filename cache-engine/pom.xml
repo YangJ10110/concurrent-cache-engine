@@ -20,6 +20,43 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <!-- JMH for Phase 5 performance benchmarks -->
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.37</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.37</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Run JMH with: mvn test-compile exec:java (use exec:java, not exec:exec) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <classpathScope>test</classpathScope>
+                    <mainClass>org.openjdk.jmh.Main</mainClass>
+                    <arguments>
+                        <argument>-f</argument>
+                        <argument>0</argument>
+                        <argument>-wi</argument>
+                        <argument>3</argument>
+                        <argument>-i</argument>
+                        <argument>3</argument>
+                        <argument>org.jerome.benchmark.LRUCacheBenchmark</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

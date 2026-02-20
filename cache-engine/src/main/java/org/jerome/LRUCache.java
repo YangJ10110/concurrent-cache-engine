@@ -38,7 +38,7 @@ public class LRUCache<K, V> {
     int capacityMin = 1;
     long capacityMax = 1_000_000L;
 
-    LRUCache(int capacity){
+    public LRUCache(int capacity){
         if (capacity < capacityMin || capacity > capacityMax){
             throw new IllegalArgumentException("Capacity must be greater than 1 and not greather than" + capacityMax);
         }
