@@ -1,5 +1,17 @@
 # Concurrent Cache Engine — Project Phases
 
+## Version Mapping
+
+| Version | Phase | Description |
+|---------|-------|-------------|
+| v0.1.0 | 1-2 | DoublyLinkedList foundation |
+| v0.2.0 | 1-4 | Core LRU with concurrency and validation |
+| v0.3.0 | 5 | JMH benchmarks (planned) |
+| v0.4.0 | 3 | LFU extension (planned) |
+| v1.0.0 | 8 | Production-ready (planned) |
+
+---
+
 ## Phase 0 — Problem Framing & Constraints
 
 **Status:** ✅ Completed
@@ -27,7 +39,8 @@ Make explicit trade-offs instead of defaulting to textbook correctness.
 
 ## Phase 1 — Core Data Structures (LRU Foundation)
 
-**Status:** ✅ Completed
+**Status:** ✅ Completed  
+**Version:** v0.1.0
 
 ### Goal
 
@@ -54,7 +67,8 @@ Implement cache primitives manually to understand invariants and memory behavior
 
 ## Phase 2 — Thread Safety & Concurrency
 
-**Status:** ✅ Completed
+**Status:** ✅ Completed  
+**Version:** v0.1.0
 
 ### Goal
 
@@ -83,7 +97,8 @@ Understand real-world trade-offs between correctness and throughput.
 
 ## Phase 3 — LFU Policy Extension
 
-**Status:** 🔜 Next
+**Status:** 🔜 Planned  
+**Target Version:** v0.4.0
 
 ### Goal
 
@@ -109,7 +124,8 @@ Extend eviction strategy to LFU to explore algorithmic and structural trade-offs
 
 ## Phase 4 — Correctness Validation
 
-**Status:** 🔄 In Progress
+**Status:** ✅ Completed  
+**Version:** v0.2.0
 
 ### Goal
 
@@ -119,10 +135,10 @@ Prove correctness before optimizing further.
 
 - [x] Single-threaded unit tests (partial — 9 DLL tests, 4 cache tests)
 - [x] Multi-threaded stress tests (basic — 2 concurrent tests)
-- [ ] Invariant checks under concurrent access
-- [ ] Failure injection (forced evictions, contention spikes)
-- [ ] Edge case coverage (capacity=1, null handling)
-- [ ] Verification of relaxed LRU skip behavior
+- [x] Invariant checks under concurrent access
+- [x] Failure injection (forced evictions, contention spikes)
+- [x] Edge case coverage (capacity=1, null handling)
+- [x] Verification of relaxed LRU skip behavior
 
 ### Why This Matters
 
@@ -133,7 +149,8 @@ Prove correctness before optimizing further.
 
 ## Phase 5 — Performance Measurement & Contention Analysis
 
-**Status:** 🔜 Next
+**Status:** 🔜 Next  
+**Target Version:** v0.3.0
 
 ### Goal
 
@@ -205,7 +222,8 @@ Introduce time as a new eviction dimension.
 
 ## Phase 8 — Production Hardening
 
-**Status:** 🔜 Optional / Stretch
+**Status:** 🔜 Optional / Stretch  
+**Target Version:** v1.0.0
 
 ### Goal
 
