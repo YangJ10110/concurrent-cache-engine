@@ -26,7 +26,7 @@ INVARIANTS:
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class LRUCache<K, V> {
@@ -34,13 +34,23 @@ public class LRUCache<K, V> {
     DoublyLinkedList<K,V> dll = new DoublyLinkedList<>();
     ReentrantLock mapLock = new ReentrantLock();
     ReentrantLock listLock = new ReentrantLock();
+
+    // The Buffer: Stores nodes that need to be moved to head
+    private final ConcurrentLinkedQueue<Node<K, V>> readBuffer = new ConcurrentLinkedQueue<>();
+    // Threshold: How many reads to buffer before forcing a list update
+    private static final int DRAIN_THRESHOLD = 64;
+
+
+
+
+
     int capacity;
     int capacityMin = 1;
     long capacityMax = 1_000_000L;
 
     public LRUCache(int capacity){
         if (capacity < capacityMin || capacity > capacityMax){
-            throw new IllegalArgumentException("Capacity must be greater than 1 and not greather than" + capacityMax);
+            throw new IllegalArgumentException("Capacity must be greater than 1 and not greater than " + capacityMax);
         }
         this.capacity = capacity;
 
@@ -57,16 +67,32 @@ public class LRUCache<K, V> {
 
         if (node == null) return null;
 
-        if( listLock.tryLock()){
-            try{
-                dll.moveNodeToHead(node);
+        readBuffer.offer(node);
+
+        return node.value;
+    }
+
+    private void tryDrain() {
+        if (listLock.tryLock()) {
+            try {
+                Node<K, V> n;
+                while ((n = readBuffer.poll()) != null) {
+                    if (n.prev != null) dll.moveNodeToHead(n); // skip if evicted (detached)
+                }
             } finally {
                 listLock.unlock();
             }
         }
-
-        return node.value;
     }
+
+    private void drainFully() {
+        Node<K, V> n;
+        while ((n = readBuffer.poll()) != null) {
+            if (n.prev != null) dll.moveNodeToHead(n); // skip if evicted (detached)
+        }
+    }
+
+
 
      public void put(K key, V value){
         // check if the key exists
@@ -77,6 +103,7 @@ public class LRUCache<K, V> {
              node = map.get(key);
              listLock.lock();
              try{
+                 drainFully();
                  if (node == null){
                      if (map.size() >= capacity) {
                          Node<K,V> removedTail = dll.removeTail();
