@@ -41,9 +41,6 @@ public class LRUCache<K, V> {
     private static final int DRAIN_THRESHOLD = 64;
 
 
-
-
-
     int capacity;
     int capacityMin = 1;
     long capacityMax = 1_000_000L;
