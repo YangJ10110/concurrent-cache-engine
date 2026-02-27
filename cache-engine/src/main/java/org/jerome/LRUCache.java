@@ -68,6 +68,7 @@ public class LRUCache<K, V> {
         if (node == null) return null;
 
         readBuffer.offer(node);
+        tryDrain();
 
         return node.value;
     }
