@@ -41,14 +41,13 @@ public class LRUCache<K, V> {
     private static final int DRAIN_THRESHOLD = 64;
 
 
-
     int capacity;
     int capacityMin = 1;
     long capacityMax = 1_000_000L;
 
     public LRUCache(int capacity){
         if (capacity < capacityMin || capacity > capacityMax){
-            throw new IllegalArgumentException("Capacity must be greater than 1 and not greather than" + capacityMax);
+            throw new IllegalArgumentException("Capacity must be greater than 1 and not greater than " + capacityMax);
         }
         this.capacity = capacity;
 
@@ -76,7 +75,7 @@ public class LRUCache<K, V> {
             try {
                 Node<K, V> n;
                 while ((n = readBuffer.poll()) != null) {
-                    dll.moveNodeToHead(n);
+                    if (n.prev != null) dll.moveNodeToHead(n); // skip if evicted (detached)
                 }
             } finally {
                 listLock.unlock();
@@ -87,7 +86,7 @@ public class LRUCache<K, V> {
     private void drainFully() {
         Node<K, V> n;
         while ((n = readBuffer.poll()) != null) {
-            dll.moveNodeToHead(n);
+            if (n.prev != null) dll.moveNodeToHead(n); // skip if evicted (detached)
         }
     }
 

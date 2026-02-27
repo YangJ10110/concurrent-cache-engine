@@ -174,6 +174,18 @@ Observe real system behavior under load.
 - O(1) algorithms don't scale linearly under contention
 - Tail latency reveals hidden bottlenecks
 
+### How to benchmark (Phase 5 metrics)
+
+Use the **benchmarks** module JAR so forked runs work. From repo root after `mvn -pl benchmarks package`:
+
+| Metric | How to get it | What to look for |
+|--------|----------------|------------------|
+| **Ops/sec** | Default run: `java -jar benchmarks/target/benchmarks.jar -f 3 -wi 5 -i 5 -t 4` | Throughput (Score) per benchmark. Run again with `-t 1`, `-t 2`, `-t 4`, `-t 8` and record ops/sec for each. If doubling threads does not double throughput → *O(1) doesn't scale linearly under contention*. |
+| **p95 / p99 latency** | Latency run: same JAR with `-bm sampletime -tu us` (e.g. `... -f 3 -wi 5 -i 5 -t 4 -bm sampletime -tu us`). | Output includes `p(95.0)`, `p(99.0)` in the chosen unit. High p99 vs p50 → *tail latency reveals hidden bottlenecks* (e.g. lock waits, GC). |
+| **Lock contention time** | Profiler run: add `-prof stack:lines=5` (or `-prof lock` if available on your JMH). Use **cache-engine** with `-f 0` so profilers run in-process: `cd cache-engine && mvn test-compile exec:java -Dexec.args="-f 0 -wi 3 -i 3 -t 4 -prof stack:lines=5 org.jerome.benchmark.LRUCacheBenchmark.readHeavy"`. | Stack profiler shows where threads spend time (e.g. in `ReentrantLock.lock`). Compare readHeavy vs writeHeavy to see contention on map/list locks. |
+
+See `benchmarks/README.md` for full commands and run scripts.
+
 ---
 
 ## Phase 6 — Comparative Design Experiments

@@ -4,9 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <parent>
+        <groupId>org.example</groupId>
+        <artifactId>concurrent-cache-engine</artifactId>
+        <version>0.2.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>cache-engine</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -20,7 +25,7 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
-        <!-- JMH for Phase 5 performance benchmarks -->
+        <!-- JMH for quick non-forked runs (mvn test-compile exec:java -f 0). Forked runs use benchmarks module. -->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
@@ -37,7 +42,7 @@
 
     <build>
         <plugins>
-            <!-- Run JMH with: mvn test-compile exec:java (use exec:java, not exec:exec) -->
+            <!-- Quick non-forked runs: mvn test-compile exec:java -Dexec.args="-f 0 -wi 5 -i 5 -t 4 org.jerome.benchmark.LRUCacheBenchmark" -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
